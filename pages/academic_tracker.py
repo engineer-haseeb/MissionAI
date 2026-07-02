@@ -4,15 +4,19 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database import engine, add_scholarship, get_all_scholarships, add_phd_target, get_all_phd_targets, update_email_status
+from database import engine, add_scholarship, get_user_scholarships, add_phd_target, get_user_phd_targets, update_email_status
 
 st.set_page_config(page_title="Academic Execution Radar", page_icon="🎓", layout="wide")
 
+# Secure Route Check: Agar user logged in nahi hai to page stop kardein
+if "logged_in" not in st.session_state or not st.session_state.logged_in:
+    st.warning("🔒 Please authenticate on the main Dashboard page first to access this operational vector.")
+    st.stop()
+
 st.title("🎓 Academic Execution Radar")
-st.markdown("##### Central pipeline for Funding Scholarships, Professor Communication, and Ph.D. Applications Profiles.")
+st.markdown(f"##### Central pipeline for user: **{st.session_state.username.upper()}**")
 st.divider()
 
-# Multi-Tabs interface for modular clean look
 tab1, tab2 = st.tabs(["🏅 Scholarship Funding Pipeline", "🔍 Ph.D. Professor Cold-Email Radar"])
 
 # ==========================================
@@ -30,14 +34,14 @@ with tab1:
             s_notes = st.text_area("Critical Entry Requirements / Notes")
             
             if st.form_submit_button("Log Scholarship Matrix") and s_name:
-                add_scholarship(s_name, s_country, s_deadline, s_status, s_notes)
+                add_scholarship(s_name, s_country, s_deadline, s_status, st.session_state.user_id, s_notes)
                 st.toast("Scholarship tracker configuration serialized!", icon="🏅")
                 st.rerun()
 
-    # Render Scholarships
-    s_list = get_all_scholarships()
+    # User ke specific scholarships fetch karein
+    s_list = get_user_scholarships(st.session_state.user_id)
     if not s_list:
-        st.info("No scholarship metrics loaded yet.")
+        st.info("No scholarship metrics loaded in your secure profile yet.")
     else:
         for sch in s_list:
             with st.container():
@@ -56,23 +60,22 @@ with tab2:
     
     with st.expander("➕ Log Professor / University Profile Target", expanded=False):
         with st.form("phd_form", clear_on_submit=True):
-            p_univ = st.text_input("Target University Name", placeholder="e.g., Tsinghua University, National University of Singapore")
+            p_univ = st.text_input("Target University Name", placeholder="e.g., Tsinghua University")
             p_name = st.text_input("Professor Name")
             p_email = st.text_input("Professor Email Coordinates")
             p_status = st.selectbox("Cold-Email Handshake Status", ["Not Sent", "Cold Email Sent", "Replied (Positive)", "Replied (Negative)", "Interview Scheduled"])
-            p_notes = st.text_area("Research Alignment Notes (e.g., Working on Federated Learning / Latency)")
+            p_notes = st.text_area("Research Alignment Notes")
             
             if st.form_submit_button("Inject Radar Target") and p_univ:
-                add_phd_target(p_univ, p_name, p_email, p_status, p_notes)
+                add_phd_target(p_univ, p_name, p_email, p_status, st.session_state.user_id, p_notes)
                 st.toast("Academic radar coordinates synchronized!", icon="🔍")
                 st.rerun()
 
-    # Render PhD Targets
-    p_list = get_all_phd_targets()
+    # User ke specific targets fetch karein
+    p_list = get_user_phd_targets(st.session_state.user_id)
     if not p_list:
-        st.info("Academic pipeline scanning complete. No professor targets logged yet.")
+        st.info("Academic pipeline scanning complete. No professor targets logged in your profile yet.")
     else:
-        # Mini analytics row for cold emails
         total_emails = len(p_list)
         replies = sum(1 for p in p_list if "Replied" in p.email_status or p.email_status == "Interview Scheduled")
         
@@ -90,7 +93,6 @@ with tab2:
                         st.caption(f"🧬 *Research Alignment Context:* {tgt.notes}")
                 
                 with col_status:
-                    # Dynamic state status inline update dropdown
                     current_idx = ["Not Sent", "Cold Email Sent", "Replied (Positive)", "Replied (Negative)", "Interview Scheduled"].index(tgt.email_status)
                     new_st = st.selectbox("Update Status", ["Not Sent", "Cold Email Sent", "Replied (Positive)", "Replied (Negative)", "Interview Scheduled"], index=current_idx, key=f"prof_status_{tgt.id}")
                     if new_st != tgt.email_status:
