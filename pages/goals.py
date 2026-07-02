@@ -3,23 +3,18 @@ from sqlmodel import Session, select
 import sys
 import os
 
-# Root directory se architecture templates access karne ke liye setup
+# Root directory se structures connect karne ke liye setup
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database import engine, Goal, Task, add_goal, delete_goal, get_user_goals
+from database import engine, Goal, Task, add_goal, delete_goal, get_all_goals
 
 st.set_page_config(page_title="Strategic Goals Hub", page_icon="🎯", layout="wide")
 
-# Secure Route Check
-if "logged_in" not in st.session_state or not st.session_state.logged_in:
-    st.warning("🔒 Please authenticate on the main Dashboard page first to access this vector.")
-    st.stop()
-
 st.title("🎯 Strategic Goals & Milestones")
-st.markdown(f"##### High-level objective definition for user: **{st.session_state.username.upper()}**")
+st.markdown("##### Abdul Haseeb's High-Level Objective Mapping Engine.")
 st.divider()
 
 # ==========================================
-# 1. GOAL CREATION FORM (UPDATED WITH USER_ID)
+# 1. GOAL CREATION FORM (SINGLE-USER)
 # ==========================================
 with st.expander("🚀 Formulate New Strategic Goal", expanded=False):
     with st.form("goal_creation_form", clear_on_submit=True):
@@ -30,15 +25,14 @@ with st.expander("🚀 Formulate New Strategic Goal", expanded=False):
         g_priority = c2.slider("Priority Alignment (Stars)", min_value=1, max_value=5, value=3)
         
         if st.form_submit_button("Initialize Goal") and g_title:
-            # YAHAN USER_ID PASS KARNA LAZMI THA
-            add_goal(g_title, g_cat, g_priority, st.session_state.user_id)
+            add_goal(g_title, g_cat, g_priority)
             st.toast("New strategic milestone synchronized!", icon="🎯")
             st.rerun()
 
 # ==========================================
-# 2. DATA QUERY LAYER (FILTERED BY USER)
+# 2. DATA QUERY LAYER (GLOBAL FETCH)
 # ==========================================
-active_goals = get_user_goals(st.session_state.user_id)
+active_goals = get_all_goals()
 
 if not active_goals:
     st.info("No long-term strategic goals initialized yet. Expand the panel above to deploy your first target.")

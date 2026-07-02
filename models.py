@@ -3,24 +3,12 @@ from typing import List, Optional
 from datetime import datetime
 
 # ==========================================
-# 1. USER AUTHENTICATION SCHEMA
-# ==========================================
-class User(SQLModel, table=True):
-    __tablename__ = "users"
-    
-    id: Optional[int] = Field(default=None, primary_key=True)
-    username: str = Field(index=True, unique=True)
-    password_hash: str  
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-# ==========================================
-# 2. GOALS SCHEMA
+# 1. STRATEGIC GOALS SCHEMA
 # ==========================================
 class Goal(SQLModel, table=True):
     __tablename__ = "goals"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="users.id") # Connected to User
     title: str = Field(index=True)
     category: str = Field(default="Research", index=True)  
     priority: int = Field(default=3)                       
@@ -31,13 +19,12 @@ class Goal(SQLModel, table=True):
     tasks: List["Task"] = Relationship(back_populates="goal")
 
 # ==========================================
-# 3. TASKS SCHEMA
+# 2. CORE PAYLOAD TASKS SCHEMA
 # ==========================================
 class Task(SQLModel, table=True):
     __tablename__ = "tasks"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="users.id") # Connected to User
     goal_id: Optional[int] = Field(default=None, foreign_key="goals.id")
     title: str = Field(index=True)
     category: str = Field(index=True)
@@ -49,13 +36,12 @@ class Task(SQLModel, table=True):
     goal: Optional[Goal] = Relationship(back_populates="tasks")
 
 # ==========================================
-# 4. SCHOLARSHIP TRACKER SCHEMA
+# 3. SCHOLARSHIP TRACKER SCHEMA
 # ==========================================
 class Scholarship(SQLModel, table=True):
     __tablename__ = "scholarships"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="users.id") # Connected to User
     name: str = Field(index=True)                           
     country: str = Field(default="China")
     deadline: str = Field(default="2027-03-01")             
@@ -63,13 +49,12 @@ class Scholarship(SQLModel, table=True):
     notes: Optional[str] = Field(default=None)
 
 # ==========================================
-# 5. PHD APPLICATION RADAR SCHEMA
+# 4. PHD APPLICATION RADAR SCHEMA
 # ==========================================
 class PhDRadar(SQLModel, table=True):
     __tablename__ = "phd_radar"
     
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(foreign_key="users.id") # Connected to User
     university: str = Field(index=True)
     professor_name: str
     professor_email: str
