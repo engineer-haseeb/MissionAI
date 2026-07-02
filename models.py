@@ -8,7 +8,7 @@ class Goal(SQLModel, table=True):
     
     id: Optional[int] = Field(default=None, primary_key=True)
     title: str = Field(index=True)
-    category: str = Field(default="Research", index=True) # Research, PhD, Scholarship, Learning, Health, Finance, Personal
+    category: str = Field(default="Research", index=True) # Research, PhD, Scholarship, Learning, Health, Personal
     priority: str = Field(default="Medium")               # Critical, High, Medium, Low
     progress_pct: float = Field(default=0.0)
     deadline: Optional[date] = Field(default=None)
@@ -91,5 +91,27 @@ class ScholarshipTracker(SQLModel, table=True):
     name: str = Field(index=True)                         # ANSO, CSC, Fulbright, etc.
     status: str = Field(default="Drafting")                # Drafting, Submitted, Shortlisted, Awarded, Rejected
     deadline: Optional[date] = Field(default=None)
-    doc_checklist: str = Field(default="")                # Comma separated items like "CV, Recommendation, Proposal"
+    doc_checklist: str = Field(default="")                # Comma separated items
     submission_history: Optional[str] = Field(default=None)
+
+# 7. AI STRUCTURAL MEMORY ENGINE
+class AIMemory(SQLModel, table=True):
+    __tablename__ = "ai_memory"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    memory_type: str = Field(index=True)                  # Habit, Weakness, Strength, WorkingHour, LongTerm
+    key_concept: str = Field(unique=True, index=True)      # e.g., "HSK4 Consistency"
+    insight_value: str                                    # e.g., "Skips structural updates on weekends"
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+# 8. NOTIFICATION & SYSTEM ALERTS PIPELINE
+class SystemAlert(SQLModel, table=True):
+    __tablename__ = "system_alerts"
+    
+    id: Optional[int] = Field(default=None, primary_key=True)
+    alert_type: str = Field(index=True)                   # Deadline Close, Overdue, Review Reminder
+    title: str
+    message: str
+    is_dismissed: bool = Field(default=False)
+    channel_dispatched: str = Field(default="In-App")     # In-App, Telegram, Email
+    created_at: datetime = Field(default_factory=datetime.utcnow)
