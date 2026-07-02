@@ -22,6 +22,7 @@ def add_goal(title: str, category: str, priority: int):
 
 def get_all_goals():
     with Session(engine) as session:
+        # returns active goals that are not archived
         return list(session.exec(select(Goal).where(Goal.is_archived == False)).all())
 
 def delete_goal(goal_id: int):
